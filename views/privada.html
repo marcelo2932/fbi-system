@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Área Privada</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    body {
+      background: black;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      max-width: 500px;
+    }
+    .card {
+      background-color: #343a40;
+    }
+    .mission-text {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .lupa {
+      font-size: 2rem;
+      margin-left: 10px;
+    }
+    .welcome-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .countdown {
+      font-size: 1.5rem;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container text-center">
+    <h1 class="mb-5 welcome-text">&#128373; Bienvenido, Agente &#128373;</h1>
+    <div class="card text-white">
+      <div class="card-body">
+        <h5 class="card-title" id="agentName"></h5>
+        <p class="card-text" id="agentEmail"></p>
+        <img id="agentPhoto" src="" alt="Foto del Agente" class="img-fluid rounded-circle mb-3">
+        <div class="mission-text">
+          <p class="card-text" id="missionText"></p>
+          <div class="lupa">&#128269;</div>
+        </div>
+        <div id="countdown" class="countdown">Tiemo restante para cerrar seción</div>
+        <button id="logoutButton" class="btn btn-danger mt-3">Salir</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const token = sessionStorage.getItem('token');
+      if (!token) {
+        alert('Debe iniciar sesión primero');
+        window.location.href = '/';
+        return;
+      }
+
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      document.getElementById('agentName').textContent = payload.nombre;
+      document.getElementById('agentEmail').textContent = payload.email;
+      document.getElementById('agentPhoto').src = `https://randomuser.me/api/portraits/men/${Math.floor(Math.random() * 100)}.jpg`;
+      document.getElementById('missionText').textContent = 'Su próxima misión secreta será revelada pronto; No salga del País!!!!';
+
+      //Tiempo restante del token!!!!!
+      const expirationTime = payload.exp * 1000; 
+      const countdownElement = document.getElementById('countdown');
+
+      function updateCountdown() {
+        const now = new Date().getTime();
+        const timeLeft = expirationTime - now;
+
+        if (timeLeft <= 0) {
+          countdownElement.textContent = 'El token ha expirado.';
+          sessionStorage.removeItem('token');
+          window.location.href = '/';
+          return;
+        }
+
+        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((timeLeft % (1000 * 30)) / 1000);
+
+        countdownElement.textContent = `Tiempo para cerrar sesion: ${minutes}m ${seconds}s`;
+      }
+
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+
+      document.getElementById('logoutButton').addEventListener('click', () => {
+        sessionStorage.removeItem('token');
+        window.location.href = '/';
+      });
+    });
+  </script>
+</body>
+</html>
